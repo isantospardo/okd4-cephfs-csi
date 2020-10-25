@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cephfs-csi-reclaim-deleted-volumes
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: {{ .Values.namespace }}
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: chart/
+    repoURL: {{ .Values.cephfsCSIReclaimDeletedVolumes.repoURL }}
+    targetRevision: {{ .Values.cephfsCSIReclaimDeletedVolumes.targetRevision | quote }}
+    helm:
+      values: |
+        ##
+        ## Default values for openshift-cephfs reclaim deleted volumes
+        ## This is a YAML-formatted file.
+        ## Declare variables to be passed into your templates.
+        ##
+
+        namespace: {{ .Values.namespace | quote }}
+        cephfsCSIReclaimDeletedVolumes:
+          image: {{ .Values.cephfsCSIReclaimDeletedVolumes.image | quote }}
+          serviceAccount: {{ .Values.cephfsCSIReclaimDeletedVolumes.serviceAccount | quote }}
+          schedule: {{ .Values.cephfsCSIReclaimDeletedVolumes.schedule | quote }}
+        nodeSelector:
+{{ toYaml .Values.cephfsCSIReclaimDeletedVolumes.nodeSelector | indent 10 }}
+
+        ##
+        ## End of additional openshift-cephfs reclaim deleted volumes resource settings.
+        ##
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

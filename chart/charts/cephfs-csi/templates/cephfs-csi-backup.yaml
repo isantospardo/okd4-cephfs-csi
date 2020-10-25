@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cephfs-csi-backup
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: {{ .Values.namespace }}
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: chart/
+    repoURL: {{ .Values.cephfsCSIBackup.repoURL }}
+    targetRevision: {{ .Values.cephfsCSIBackup.targetRevision | quote }}
+    helm:
+      values: |
+        ##
+        ## Default values for openshift-cephfs backup volumes.
+        ## This is a YAML-formatted file.
+        ## Declare variables to be passed into your templates.
+        ##
+
+        namespace: {{ .Values.namespace | quote }}
+        backupCronjob:
+          image: {{ .Values.cephfsCSIBackup.image | quote }}
+
+        s3:
+          cephfsBackupS3AccessKey: {{ .Values.global.s3.accessKeyId | quote }}
+          cephfsBackupS3SecretKey: {{ .Values.global.s3.secretAccessKey | quote }}
+          cephfsBackupPassword: {{ .Values.cephfsCSIBackup.cephfsBackupPassword | quote }}
+          cephfsBackupRepositoryBase: "s3:https://{{ .Values.global.s3.hostname }}/{{ .Values.global.s3.bucket}}/restic-backup"
+
+        openstack:
+          manilaSecretName: {{ .Values.cephfsManilaCSI.osSecretName }}
+          username: {{ .Values.global.openstack.username }}
+
+        nodeSelector:
+{{ toYaml .Values.cephfsCSIBackup.nodeSelector | indent 10 }}
+
+        backupForget:
+          resticForgetArgs: {{ .Values.cephfsCSIBackup.backupForget.resticForgetArgs | quote }}
+          retries: {{ .Values.cephfsCSIBackup.backupForget.retries | quote }}
+          schedule: {{ .Values.cephfsCSIBackup.backupForget.schedule | quote }}
+          parallelism: {{ .Values.cephfsCSIBackup.backupForget.parallelism | quote }}
+
+        ##
+        ## End of additional openshift-cephfs backup volumes resource settings.
+        ##
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

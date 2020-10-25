@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: manila-csi
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: {{ .Values.namespace | quote }}
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    repoURL: {{ .Values.cephfsManilaCSI.repoURL }}
+    path: charts/manila-csi-plugin
+    targetRevision: {{ .Values.cephfsManilaCSI.targetRevision | quote }}
+    helm:
+      values: |
+        ##
+        ## Default values for openshift-cephfs manila provisioner
+        ## This is a YAML-formatted file.
+        ## Declare variables to be passed into your templates.
+        ##
+
+        # Enabled Manila share protocols
+        shareProtocols:
+          - protocolSelector: CEPHFS
+            fwdNodePluginEndpoint:
+              # Same used as used in https://github.com/ceph/ceph-csi/blob/master/charts/ceph-csi-cephfs/values.yaml#L194
+              dir: /var/lib/kubelet/plugins/cephfs.csi.ceph.com
+              sockFile: csi.sock
+
+        # We decided to add the clusterName to the driverName as we currently do not have the possibility of distinguish PVCs created for other clusters
+        # Once this issue https://github.com/kubernetes/cloud-provider-openstack/issues/1280 is implemented, we will be able to remove this part and really
+        # in adding specific metadata for each manila share
+        driverName: {{ template "cephfscsi.drivername" . }}
+
+        controllerplugin:
+          # We explicitly configure this in order to control the serviceAccounts name.
+          # Otherwise, if for some reason upstream Helm chart decide to change the default SA name it will stop working.
+          fullnameOverride: manila-csi-openstack-manila-csi-controllerplugin
+
+        ##
+        ## End of additional openshift-cephfs manila provisioner resource settings.
+        ##
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

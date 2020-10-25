@@ -1,0 +1,67 @@
+namespace: ""
+
+cephfsCSIDriver:
+  # Repository available in
+  # https://github.com/ceph/ceph-csi/blob/v3.1.1/charts/ceph-csi-cephfs/values.yaml
+  repoURL: https://ceph.github.io/csi-charts
+  targetRevision: 'v3.1.1' # Versions available in https://hub.helm.sh/charts/ceph-csi/ceph-csi-cephfs
+
+  nodePlugin:
+    nodeSelector:
+      node-role.kubernetes.io/worker: ""
+
+  provisioner:
+    nodeSelector:
+      node-role.kubernetes.io/infra: ""
+
+cephfsManilaCSI:
+  # Repository available in
+  # https://github.com/kubernetes/cloud-provider-openstack/blob/openstack-manila-csi-1.0.0/charts/manila-csi-plugin/values.yaml
+  # TODO: deploy from helm chart repository instead once they release the fix https://github.com/kubernetes/cloud-provider-openstack/issues/1281
+  repoURL: https://github.com/kubernetes/cloud-provider-openstack.git
+  targetRevision: 'openstack-manila-csi-1.0.0'
+
+  osSecretName: ""
+
+  sharesType: ""
+
+  isDefaultStorageClass: true
+
+  deamonSet:
+    nodeSelector:
+      node-role.kubernetes.io/worker: ""
+
+  controllerPlugin:
+    serviceAccount: ""
+    nodeSelector:
+      node-role.kubernetes.io/worker: ""
+
+cephfsCSIBackup:
+  repoURL: ""
+  targetRevision: ""
+  image: ""
+
+  nodeSelector:
+    node-role.kubernetes.io/infra: ""
+
+  backupForget:
+    resticForgetArgs: --keep-yearly 3 --keep-monthly 3 --keep-weekly 4 --keep-daily 7 --prune
+    retries: ""
+    schedule: ""
+    parallelism: ""
+  cephfsBackupPassword: ""
+
+cephfsCSIReclaimDeletedVolumes:
+  repoURL: ""
+  targetRevision: ""
+  image: ""
+
+  schedule: """
+  serviceAccount: ""
+
+  nodeSelector:
+    node-role.kubernetes.io/infra: ""
+
+initializeResticBucket:
+  nodeSelector:
+    node-role.kubernetes.io/infra: ""

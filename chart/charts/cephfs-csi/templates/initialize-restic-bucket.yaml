@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: initialize-restic-bucket
+  namespace: {{ .Values.namespace }}
+spec:
+  selector: {}
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        job: initialize-restic-bucket
+        job-name: initialize-restic-bucket
+      name: initialize-restic-bucket
+    spec:
+      containers:
+      - name: initialize-restic-bucket
+        image: restic/restic
+        env:
+          - name: RESTIC_PASSWORD
+            value: {{ .Values.cephfsCSIBackup.cephfsBackupPassword }}
+          - name: AWS_ACCESS_KEY_ID
+            value: {{ .Values.global.s3.accessKeyId }}
+          - name: AWS_SECRET_ACCESS_KEY
+            value: {{ .Values.global.s3.secretAccessKey }}
+          - name: DESIRED_BUCKET_NAME
+            value: {{ .Values.global.s3.bucket }}
+        command: ["/bin/sh"]
+        args: ["-c", "restic -r s3:s3.ch/$(DESIRED_BUCKET_NAME)/restic-backup init"]
+      nodeSelector:
+{{ toYaml .Values.initializeResticBucket.nodeSelector | indent 8 }}
+      restartPolicy: Never

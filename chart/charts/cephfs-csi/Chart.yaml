@@ -1,0 +1,18 @@
+apiVersion: v2
+name: cephfs-csi
+description: Deploys Cephfs CSI as an Argo CD Application in Openshift4 clusters.
+version: 0.1.0
+appVersion: v0.1.0
+home: https://github.com/ceph/ceph-csi
+icon: https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/OpenShift-LogoType.svg/1200px-OpenShift-LogoType.svg.png
+keywords:
+- openshift
+- okd4
+- cephfs
+- csi-driver
+sources:
+- https://github.com/ceph/ceph-csi
+- https://github.com/kubernetes/cloud-provider-openstack
+maintainers:
+- name: 
+  email: 
